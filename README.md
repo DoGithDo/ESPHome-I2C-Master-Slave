@@ -219,7 +219,7 @@ Wire.write((byte *)response_message, ANSWERSIZE);
 ```
 The `response_message` is taken out of the `response_queue` (a `vector`).
 > [!NOTE]
-> In a first version, Request Event did read the sensor value, calculate the checksum and concatenate the string with all delimiters. This did take too long and I had performance issues. In this version the data is written into a queue (`response_queue` as `vector`) and waiting for delivery.
+> In a first version, Request Event did read the sensor value, calculate the checksum and concatenate the string with all delimiters. This took too long and I had performance issues. In this version the data is written into a queue (`response_queue` as `vector`) and waiting for delivery.
 
 ## Issues on I2C and solutions
 During development I often had faulty messages. The cause was often that the ESP32 was busy and could not respond to the bus. In particular I had the following problems:
