@@ -1,0 +1,53 @@
+# sensor: wifi-signal, sensor: uptime, binary_sensor: status, text_sensor: version, text_sensor: wifi-info, button: restart
+
+sensor:
+  - platform: uptime
+    name: ${friendly_name} Uptime
+    unit_of_measurement: min
+    device_class: duration
+    state_class: total_increasing
+    icon: mdi:timelapse
+    entity_category: diagnostic
+    web_server_sorting_weight: 240
+    filters:
+    - lambda: return x / 60;
+    update_interval: ${update_interval_long}
+
+
+  - platform: wifi_signal
+    name: ${friendly_name} WiFi Signal
+    update_interval: ${update_interval_long}
+    device_class: signal_strength
+    entity_category: diagnostic
+    icon: mdi:signal-variant
+    web_server_sorting_weight: 251
+
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: ${friendly_name} IP Address
+      icon: mdi:signal-variant
+      web_server_sorting_weight: 250
+    ssid:
+      name: ${friendly_name} SSID
+      icon: mdi:signal-variant
+      web_server_sorting_weight: 252
+    bssid:
+      name: ${friendly_name} BSSID
+      icon: mdi:signal-variant
+      web_server_sorting_weight: 253
+
+  - platform: version
+    name: ${friendly_name} ESPHome Version
+    icon: mdi:folder-arrow-down-outline
+    web_server_sorting_weight: 270
+
+button:
+  - platform: restart
+    id: restart_button
+    name: ${friendly_name} Restart
+    device_class: ""
+    entity_category: config
+    icon: mdi:button-cursor
+    web_server_sorting_weight: 190

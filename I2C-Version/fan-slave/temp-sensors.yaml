@@ -1,0 +1,92 @@
+
+####################### one_wire for dallas ###################################
+one_wire:
+  - platform: gpio
+    pin:
+      number: GPIO27
+    id: wire_temp_fresh_before
+  - platform: gpio
+    pin:
+      number: GPIO23
+    id: wire_temp_fresh_after
+  - platform: gpio
+    pin:
+      number: GPIO18
+    id: wire_temp_used_before
+  - platform: gpio
+    pin:
+      number: GPIO19
+    id: wire_temp_used_after
+
+
+
+##################### Dallas ###############################
+# Requires DEBUG in debug_level to show address
+sensor:
+    #TFB = Temperature Fresh air Before heat exchanger
+    - platform: dallas_temp
+      address: 0x903de10457782328
+      name: "Frischluft vor Wärmetauscher (TFB)"
+      id: temp_fresh_before
+      one_wire_id: wire_temp_fresh_before  
+      device_class: "temperature"
+      state_class: "measurement"
+      unit_of_measurement: "°C"
+      icon: "mdi:thermometer"
+      web_server_sorting_weight: 10
+      update_interval: ${update_interval_short}
+      on_value:
+        then:
+          - lambda: |-
+              message("TFB", x);
+
+#    #TFA = Temperature Fresh air After heat exchanger
+#    - platform: dallas_temp
+#      address: 01234 #XXXXX noch anpassen
+#      name: "Frischluft nach Wärmetauscher (TFA)"
+#      id: temp_fresh_after
+#      one_wire_id: wire_temp_fresh_after 
+#      device_class: "temperature"
+#      state_class: "measurement"
+#      unit_of_measurement: "°C"
+#      icon: "mdi:thermometer"
+#      web_server_sorting_weight: 11
+#      update_interval: ${update_interval_short}
+#      on_value:
+#        then:
+#          - lambda: |-
+#              message("TFA", x);
+
+    #TUB = Temperature Used air Before heat exchanger
+    - platform: dallas_temp
+      address: 0x544152d4464add28
+      name: "Abluft vor Wärmetauscher (TUB)"
+      id: temp_used_before
+      one_wire_id: wire_temp_used_before  
+      device_class: "temperature"
+      state_class: "measurement"
+      unit_of_measurement: "°C"
+      icon: "mdi:thermometer"
+      web_server_sorting_weight: 12
+      update_interval: ${update_interval_short}
+      on_value:
+        then:
+          - lambda: |-
+              message("TUB", x);
+              
+#    #TUA = Temperature Used air After heat exchanger
+#    - platform: dallas_temp
+#      address: 0123 #XXXXXX noch anpassen
+#      name: "Abluft nach Wärmetauscher (TUA)"
+#      id: temp_used_after
+#      one_wire_id: wire_temp_used_after
+#      device_class: "temperature"
+#      state_class: "measurement"
+#      unit_of_measurement: "°C"
+#      icon: "mdi:thermometer"
+#      web_server_sorting_weight: 13
+#      update_interval: ${update_interval_short}
+#      on_value:
+#        then:
+#          - lambda: |-
+#              message("TUA", x);

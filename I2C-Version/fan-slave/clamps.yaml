@@ -1,0 +1,73 @@
+sensor:
+  - platform: ct_clamp
+    sensor: pwr_fresh
+    name: "Stromverbrauch Frischluft (aber Abluft)"
+    update_interval: ${update_interval_short}
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 4
+    web_server_sorting_weight: 21
+    icon: mdi:meter-electric-outline
+    filters:
+       - calibrate_linear:
+         - 0.018 -> 0.0
+         - 0.042 -> 41
+    #     - 0.0033 -> 25000.0
+    #     - 0.0066 -> 50000.0 #XXXX to be defined
+    #     - 0.0036/7 bei ausgesteckt
+    #     - 0.0060 bei eingesteckt
+      #  - sliding_window_moving_average:
+      #     window_size: 15
+      #     send_every: 15
+    on_value:
+      then:
+        - lambda: |-
+            message("PWF", x);
+
+  - platform: adc
+    pin: 34
+    id: pwr_fresh
+    internal: true
+    web_server_sorting_weight: 22
+    disabled_by_default: true
+    update_interval: ${update_interval_short}
+    attenuation: auto
+
+
+  - platform: ct_clamp
+    sensor: pwr_used
+    name: "Stromverbrauch Abluft (aber Frischluft = vorne)"
+    update_interval: ${update_interval_short}
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 4
+    web_server_sorting_weight: 23
+    icon: mdi:meter-electric-outline
+    # filters:
+    #   - calibrate_linear:
+    #     - 0 -> 0
+    #     - 0.00001 -> 0.0
+    #     - 0.0033 -> 25000.0
+    #     - 0.0066 -> 50000.0 #XXXX to be defined
+    #     - 0.0033 bei ausgesteckt
+    #     - 0.0059-61 bei eingesteckt
+    #     - 1.5-1.7 W im myStrom
+    filters:
+      - sliding_window_moving_average:
+          window_size: 15
+          send_every: 15
+    on_value:
+      then:
+        - lambda: |-
+            message("PWU", x);
+
+  - platform: adc
+    pin: 36
+    id: pwr_used
+    internal: true
+    web_server_sorting_weight: 24
+    disabled_by_default: true
+    update_interval: ${update_interval_short}
+    attenuation: auto

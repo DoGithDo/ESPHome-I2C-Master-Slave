@@ -1,0 +1,40 @@
+######################### Fan ################################
+fan:
+  - platform: template
+    name: Lüfter Frischluft Ziel (FFS)
+    id: fan_fresh_target
+    icon: mdi:fan
+    restore_mode: ALWAYS_ON
+    speed_count: 100
+    web_server_sorting_weight: 1
+    on_speed_set:
+        - lambda: |-
+            command("FFS", id(fan_fresh_target).speed);
+        - if:
+            condition:
+              lambda: |-
+                return id(fan_fresh_target).speed == 1;
+            then:
+              - fan.turn_off: fan_fresh_target
+            else:
+              - fan.turn_on: fan_fresh_target
+
+  - platform: template
+    name: Lüfter Abluft Ziel (FUS)
+    id: fan_used_target
+    icon: mdi:fan
+    restore_mode: ALWAYS_ON
+    speed_count: 100
+    web_server_sorting_weight: 4
+    on_speed_set:
+        - if:
+            condition:
+              lambda: |-
+                return id(fan_used_target).speed == 1;
+            then:
+              - fan.turn_off: fan_used_target
+            else:
+              - fan.turn_on: fan_used_target
+        - delay: 3s
+        - lambda: |-
+            command("FUS", id(fan_used_target).speed);

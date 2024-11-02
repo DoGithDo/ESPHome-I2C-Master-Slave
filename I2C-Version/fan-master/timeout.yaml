@@ -1,0 +1,67 @@
+
+sensor:
+
+# Timeout for Master-Slave connection. Sets binary-sensor connection_to_slave
+# Restarts after 1h with no connection to slave
+  - platform: template
+    id: timeout_slave
+    name: "Timeout Slave"
+    state_class: "measurement"
+    icon: mdi:lan-connect
+    entity_category: diagnostic
+    web_server_sorting_weight: 111
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - timeout:
+          timeout: 1min
+          value: 0
+      - timeout:
+          timeout: 60min
+          value: 2
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: |-
+                return id(timeout_slave).state == 0;
+            then:
+              - lambda: |-
+                  id(connection_to_slave).publish_state(false);
+            else:
+              - lambda: 'id(connection_to_slave).publish_state(true);'
+        - if:
+            condition:
+              lambda: |-
+                return id(timeout_slave).state == 2;
+            then:
+              - button.press: restart_button
+
+binary_sensor:
+
+# Track connection to slave, set by sensor timeout_slave. Execute failover mode
+  - platform: template
+    id: connection_to_slave
+    name: Verbindung zum Slave
+    icon: mdi:lan-connect
+    device_class: connectivity
+    entity_category: diagnostic
+    web_server_sorting_weight: 110
+    on_state:
+      then:
+        - if:
+            condition:
+              lambda: |-
+                return x == false;
+            then:
+              - light.turn_on:
+                  id: led_red      
+        - if:
+            condition:
+              lambda: |-
+                return x == true;
+            then:
+              - light.turn_off:
+                  id: led_red
+
+

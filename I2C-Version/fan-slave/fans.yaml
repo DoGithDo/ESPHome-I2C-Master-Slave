@@ -1,0 +1,97 @@
+#################### LEDC PWM channel ##################
+output:
+#PWM fan fresh air
+  - platform: ledc
+    id: pwm_fan_fresh
+    pin: GPIO05
+    frequency: 25 #2300Hz, according to specification fan
+    min_power: 0% #XXX Wert, ab welchem der Venti nicht mehr läuft???
+    max_power: 100%
+#PWM fan used air
+  - platform: ledc
+    id: pwm_fan_used
+    pin: GPIO04
+    frequency: 25 #2300Hz, according to specification fan
+    min_power: 0% #XXX Wert, ab welchem der Venti nicht mehr läuft???
+    max_power: 100%
+
+
+
+############################ Fans ########################
+fan:
+  - platform: speed
+    output: pwm_fan_fresh
+    name: Lüfter Frischluft (FFS)
+    id: fan_fresh
+    icon: mdi:fan
+    restore_mode: ALWAYS_ON
+    web_server_sorting_weight: 2
+    on_speed_set:
+        - lambda: |-
+            message("FFS", id(fan_fresh).speed);
+        - if:
+            condition:
+              lambda: |-
+                return id(fan_fresh).speed == 1;
+            then:
+              - fan.turn_off: fan_fresh
+            else:
+              - fan.turn_on: fan_fresh
+  
+  - platform: speed
+    output: pwm_fan_used
+    name: Lüfter Abluft (FUS)
+    id: fan_used
+    icon: mdi:fan
+    restore_mode: ALWAYS_ON
+    web_server_sorting_weight: 4
+    on_speed_set:
+        - lambda: |-
+            message("FUS", id(fan_used).speed);
+        - if:
+            condition:
+              lambda: |-
+                return id(fan_used).speed == 1;
+            then:
+              - fan.turn_off: fan_used
+            else:
+              - fan.turn_on: fan_used
+            
+
+##################################### Sensors for tacho #######################################
+sensor:
+  - platform: pulse_meter
+    pin: GPIO32
+    name: "Tacho Lüfter Frischluft (TFS)"
+    id: tacho_fresh_air
+    unit_of_measurement: 'Hz'
+    device_class: frequency
+    state_class: measurement
+    accuracy_decimals: 0
+    web_server_sorting_weight: 3
+    internal_filter: 100us
+    internal_filter_mode: PULSE
+    filters:
+      - throttle_average: ${update_interval_short}
+    on_value:
+      then:
+        - lambda: |-
+            message("TFS", id(tacho_fresh_air).state);
+  - platform: pulse_meter
+    pin: GPIO35
+    name: "Tacho Lüfter Abluft (TUS)"
+    id: tacho_used_air
+    unit_of_measurement: 'Hz'
+    device_class: frequency
+    state_class: measurement
+    accuracy_decimals: 0
+    web_server_sorting_weight: 5
+    internal_filter: 100us
+    internal_filter_mode: PULSE
+    filters:
+      - heartbeat: ${update_interval_short}
+    on_value:
+      then:
+        - lambda: |-
+            message("TUS", id(tacho_used_air).state);
+

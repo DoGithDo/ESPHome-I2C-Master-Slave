@@ -1,0 +1,68 @@
+interval:
+
+# Sets flap level if no connection with home assistant, depending on heating_period and temperature
+ - interval: ${update_interval_short}
+   startup_delay: 21s
+   then:
+   # only if no connection with home assistant
+    - if:
+        condition:
+          - binary_sensor.is_off: connection_to_home_assistant # no connection with home assistant
+        then:
+         # flap depending on heating_period and temperature
+          - if:
+              condition:
+                # winter
+                binary_sensor.is_on: heating_period
+              then:
+                - if:
+                    condition:
+                    # cold outside
+                      and:
+                        - lambda: |-
+                            return id(temp_fresh_before_mirror).state < id(target_temperature_winter);
+                        - switch.is_on: flap_heat_exchanger_target #don't execute if already closed -> triggers new state
+                    then:
+                      - switch.turn_off: flap_heat_exchanger_target
+                      - logger.log:
+                          format: "FLAP: winter, cold outside -> close flap"
+                          level: INFO
+
+                - if:
+                    condition:
+                    # warm outside, temp_fresh_before_mirror > target_temperature_winter
+                      and:
+                        - lambda: |-
+                            return id(temp_fresh_before_mirror).state > id(target_temperature_winter);
+                        - switch.is_off: flap_heat_exchanger_target #don't execute if already open -> triggers new state
+                    then:
+                      - switch.turn_on: flap_heat_exchanger_target
+                      - logger.log: 
+                          format: "FLAP: winter, very hot outside -> open flap"
+                          level: INFO
+              else:
+              # summer
+                - if:
+                    condition:
+                    # cold outside
+                      and:
+                        - lambda: |-
+                            return id(temp_fresh_before_mirror).state < id(target_temperature_summer);
+                        - switch.is_off: flap_heat_exchanger_target #don't execute if already open -> triggers new state
+                    then:
+                      - switch.turn_on: flap_heat_exchanger_target
+                      - logger.log: 
+                          format: "FLAP: summer, cold outside -> open flap"
+                          level: INFO
+                - if:
+                    condition:
+                    # warm outside
+                      and:
+                        - lambda: |-
+                            return id(temp_fresh_before_mirror).state > id(target_temperature_summer);
+                        - switch.is_on: flap_heat_exchanger_target #don't execute if already closed -> triggers new state
+                    then:
+                      - switch.turn_off: flap_heat_exchanger_target
+                      - logger.log:
+                          format: "FLAP: summer, very hot outside -> close flap"
+                          level: INFO

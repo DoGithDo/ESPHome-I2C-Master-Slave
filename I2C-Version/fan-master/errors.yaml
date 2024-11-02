@@ -1,0 +1,99 @@
+# counting errors on I2C, showing last I2C error
+
+sensor:
+
+  - platform: template
+    id: count_receives_i2cbus
+    name: "Total receives/sends on I2C bus"
+    device_class: ""
+    state_class: total_increasing
+    icon: mdi:counter
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    web_server_sorting_weight: 202
+    update_interval: never
+
+  - platform: template
+    id: count_errors_total_sensor
+    name: "Error I2C: Total errors"
+    device_class: ""
+    state_class: total_increasing
+    icon: mdi:counter
+    web_server_sorting_weight: 203
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: ${update_interval_short}
+    lambda: |-
+      return (id(count_error_no_send_sensor).state + id(count_error_wrong_answer_size_sensor).state + id(count_error_wrong_delimiter_sensor).state + id(count_error_wrong_checksum_sensor).state);
+
+  - platform: template
+    id: count_error_no_send_sensor
+    name: "Error I2C: No send"
+    device_class: ""
+    state_class: total_increasing
+    icon: mdi:counter
+    web_server_sorting_weight: 204
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: never
+
+  - platform: template
+    id: count_error_wrong_answer_size_sensor
+    name: "Error I2C: No data"
+    device_class: ""
+    state_class: total_increasing
+    icon: mdi:counter
+    web_server_sorting_weight: 205
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: never
+
+  - platform: template
+    id: count_error_wrong_delimiter_sensor
+    name: "Error I2C: Wrong delimiter"
+    device_class: ""
+    state_class: total_increasing
+    icon: mdi:counter
+    web_server_sorting_weight: 206
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: never
+
+  - platform: template
+    id: count_error_wrong_checksum_sensor
+    name: "Error I2C: Wrong checksum"
+    device_class: ""
+    state_class: total_increasing
+    icon: mdi:counter
+    web_server_sorting_weight: 207
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: never
+
+
+  - platform: template
+    name: "Success ratio I2C"
+    id: success_ratio_I2C
+    device_class: ""
+    state_class: measurement
+    entity_category: diagnostic
+    icon: mdi:alert-circle-outline
+    unit_of_measurement: "%"
+    web_server_sorting_weight: 201
+    accuracy_decimals: 0
+    update_interval: ${update_interval_short}
+    lambda: |-
+      float quota = 100 - (100 * id(count_errors_total_sensor).state / id(count_receives_i2cbus).state) ;
+      return quota;
+
+text_sensor:
+
+# Error Code of function Wire.endTransmission
+  - platform: template
+    name: "Last Error I2C Send"
+    id: error_code_i2c_send_text
+    device_class: ""
+    entity_category: diagnostic
+    icon: mdi:alert-circle-outline
+    web_server_sorting_weight: 208
+    update_interval: never
