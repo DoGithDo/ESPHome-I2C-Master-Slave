@@ -1,0 +1,36 @@
+
+
+select:
+# Execute Test Cases
+  - platform: template
+    id: test_case
+    name: Execute Test Case
+    entity_category: diagnostic
+    icon: mdi:form-dropdown
+    web_server_sorting_weight: 60
+    optimistic: true
+    options:
+      - "None"
+      - "Loose connection to master"
+      - "Trigger Timeout Restart"
+    initial_option: "None"
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: |-
+                return x == "Loose connection to master";
+            then:
+              - select.set:
+                  id: test_case
+                  option: "None"
+              - lambda: 'id(connection_to_master).publish_state(false);'
+        - if:
+            condition:
+              lambda: |-
+                return x == "Trigger Timeout Restart";
+            then:
+              - select.set:
+                  id: test_case
+                  option: "None"
+              - lambda: 'id(timeout_master).publish_state(2);'

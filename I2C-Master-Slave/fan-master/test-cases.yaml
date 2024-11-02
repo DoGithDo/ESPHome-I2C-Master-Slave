@@ -1,0 +1,74 @@
+
+select:
+
+# Execute Test Cases
+  - platform: template
+    id: test_case
+    name: Execute Test Case
+    entity_category: diagnostic
+    icon: mdi:form-dropdown
+    web_server_sorting_weight: 60
+    optimistic: true
+    options:
+      - "None"
+      - "Loose connection to Home Assistant"
+      - "Set heating period"
+      - "Reset heating period"
+      - "Trigger Timeout Restart"
+    initial_option: "None"
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: |-
+                return x == "Loose connection to Home Assistant";
+            then:
+              - lambda: |-
+                  id(connection_to_home_assistant).publish_state(false);
+              - select.set:
+                  id: test_case
+                  option: "None"
+        - if:
+            condition:
+              lambda: |-
+                return x == "Set heating period";
+            then:
+              - globals.set:
+                  id: start_heating_period
+                  value: '1'
+              - globals.set:
+                  id: end_heating_period
+                  value: '12'
+              - select.set:
+                  id: test_case
+                  option: "None"
+        - if:
+            condition:
+              lambda: |-
+                return x == "Reset heating period";
+            then:
+              - globals.set:
+                  id: start_heating_period
+                  value: '9'
+              - globals.set:
+                  id: end_heating_period
+                  value: '5'
+              - select.set:
+                  id: test_case
+                  option: "None"
+        - if:
+            condition:
+              lambda: |-
+                return x == "Trigger Timeout Restart";
+            then:
+              - select.set:
+                  id: test_case
+                  option: "None"
+              - lambda: 'id(timeout_slave).publish_state(2);'
+
+# interval:
+# # for testing command injection
+#  - interval: 10s
+#    then:
+#    - lambda: |-
+#       command("FFS", ""); 

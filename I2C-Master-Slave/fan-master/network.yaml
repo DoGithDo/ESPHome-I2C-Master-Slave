@@ -1,0 +1,34 @@
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  reboot_timeout: ${reboot_timeout_wifi}
+  # to change name of ESP
+  # use_address:
+
+  # Set up a wifi access point
+  ap:
+    ssid: ${name}
+    password: !secret ap_wifi_password
+    ap_timeout: ${access_point_timeout}
+  on_connect:
+    - light.turn_off: led_yellow
+  on_disconnect:
+    - light.turn_on: led_yellow
+
+# In combination with the 'ap' to provision wifi credentials
+captive_portal:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+  # triggers if no connection to home assistant 
+  reboot_timeout: ${reboot_timeout_api}
+
+# Allow Over-The-Air updates
+ota:
+  password: !secret ota_password
+  platform: esphome 
+
+# Allow provisioning Wi-Fi via serial
+improv_serial:

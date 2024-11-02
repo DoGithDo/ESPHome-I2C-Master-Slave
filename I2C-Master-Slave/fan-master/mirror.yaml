@@ -1,0 +1,189 @@
+# Mirroring the sensors ... from slave
+
+######################################## Intervals ###############################################
+interval:
+
+# Mirror slave to master: compare and resend command
+
+# compare flap heat exchanger
+ - interval: ${update_interval_short}
+   startup_delay: 17s
+   then:
+   - lambda: |-
+      if (id(flap_heat_exchanger_mirror).state != id(flap_heat_exchanger_target).state)
+          {
+            command("FHS", id(flap_heat_exchanger_target).state);
+          }
+
+# compare fan level fresh
+ - interval: ${update_interval_short}
+   startup_delay: 19s
+   then:
+   - lambda: |-
+      if (id(fan_fresh_mirror).speed != id(fan_fresh_target).speed)
+        { 
+          command("FFS", (id(fan_fresh_target).speed));
+        }
+
+# compare fan level used
+ - interval: ${update_interval_short}
+   startup_delay: 22s
+   then:
+   - lambda: |-
+      if (id(fan_used_mirror).speed != id(fan_used_target).speed)
+        { 
+          command("FUS", (id(fan_used_target).speed));
+        }
+
+# compare wifi slave
+ - interval: ${update_interval_short}
+   startup_delay: 25s
+   then:
+   - lambda: |-
+      if (id(wifi_slave_mirror).state != id(wifi_slave_target).state)
+          {
+            command("WIS", id(wifi_slave_target).state);
+          }
+
+###################### Mirrors ##########################################################################
+
+binary_sensor:
+# Mirror of flap_heat_exchanger on slave. Triggered by I2C. To correspond with flap_heat_exchanger_target (see interval:)
+  - platform: template
+    id: flap_heat_exchanger_mirror
+    name: Klappe Wärmetauscher Mirror
+    icon: mdi:valve
+    web_server_sorting_weight: 26
+
+
+# Mirror of wifi_slave on slave. Triggered by I2C. To correspond with wifi_slave_target (see interval:)
+  - platform: template
+    id: wifi_slave_mirror
+    name: Wifi Slave Mirror
+    icon: mdi:signal-variant
+    entity_category: diagnostic
+    web_server_sorting_weight: 50
+
+
+sensor:
+
+  - platform: template
+    id: temp_fresh_before_mirror
+    name: "Frischluft vor Wärmetauscher (TFB) Mirror"
+    device_class: temperature
+    state_class: measurement
+    icon: "mdi:thermometer"
+    unit_of_measurement: "°C"
+    web_server_sorting_weight: 20
+    update_interval: never
+
+  - platform: template
+    id: temp_fresh_after_mirror
+    name: "Frischluft nach Wärmetauscher (TFA) Mirror"
+    device_class: temperature
+    state_class: measurement
+    icon: "mdi:thermometer"
+    unit_of_measurement: "°C"
+    web_server_sorting_weight: 21
+    update_interval: never
+
+  - platform: template
+    id: temp_used_before_mirror
+    name: "Abluft vor Wärmetauscher (TUB) Mirror"
+    device_class: temperature
+    state_class: measurement
+    icon: "mdi:thermometer"
+    unit_of_measurement: "°C"
+    web_server_sorting_weight: 22
+    update_interval: never
+
+  - platform: template
+    id: temp_used_after_mirror
+    name: "Abluft vor Wärmetauscher (TUA) Mirror"
+    device_class: temperature
+    state_class: measurement
+    icon: "mdi:thermometer"
+    unit_of_measurement: "°C"
+    web_server_sorting_weight: 23
+    update_interval: never
+
+  - platform: template
+    id: tacho_fresh_mirror
+    name: "Tacho Lüfter Frischluft (TFS) Mirror"
+    unit_of_measurement: 'Hz'
+    device_class: frequency
+    state_class: measurement
+    accuracy_decimals: 0
+    icon: "mdi:pulse"
+    web_server_sorting_weight: 3
+    update_interval: never
+
+  - platform: template
+    id: tacho_used_mirror
+    name: "Tacho Lüfter Abluft (TUS) Mirror"
+    unit_of_measurement: 'Hz'
+    device_class: frequency
+    state_class: measurement
+    accuracy_decimals: 0
+    icon: "mdi:pulse"
+    web_server_sorting_weight: 6
+    update_interval: never
+
+  - platform: template
+    id: pwr_fresh_mirror
+    name: "Stromverbrauch Frischluft (aber Abluft) Mirror"
+    update_interval: never
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 2
+    web_server_sorting_weight: 40
+    icon: mdi:meter-electric-outline
+
+  - platform: template
+    id: pwr_used_mirror
+    name: "Stromverbrauch Abluft (aber Frischluft = vorne) Mirror"
+    update_interval: never
+    unit_of_measurement: 'A'
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 2
+    web_server_sorting_weight: 41
+    icon: mdi:meter-electric-outline
+
+######################## Fan #############################
+
+fan:
+  - platform: template
+    name: Lüfter Frischluft Mirror (FFS)
+    id: fan_fresh_mirror
+    icon: mdi:fan
+    restore_mode: ALWAYS_ON
+    speed_count: 100
+    web_server_sorting_weight: 2
+    on_speed_set:
+      - if:
+          condition:
+            lambda: |-
+              return id(fan_fresh_mirror).speed == 1;
+          then:
+            - fan.turn_off: fan_fresh_mirror
+          else:
+            - fan.turn_on: fan_fresh_mirror
+
+  - platform: template
+    name: Lüfter Abluft Mirror (FUS)
+    id: fan_used_mirror
+    icon: mdi:fan
+    restore_mode: ALWAYS_ON
+    speed_count: 100
+    web_server_sorting_weight: 5
+    on_speed_set:
+      - if:
+          condition:
+            lambda: |-
+              return id(fan_used_mirror).speed == 1;
+          then:
+            - fan.turn_off: fan_used_mirror
+          else:
+            - fan.turn_on: fan_used_mirror

@@ -1,0 +1,33 @@
+# manage hardware slave
+
+button:
+
+# Restart Slave
+  - platform: template
+    name: Slave Restart
+    device_class: ""
+    entity_category: config
+    icon: mdi:button-cursor
+    web_server_sorting_weight: 191
+    on_press:
+      lambda: |-
+        command("RES");
+
+switch:
+
+# Turn on / off Wifi on Slave. In global environment set to "test", wifi on slave always on at startup
+  - platform: template
+    id: wifi_slave_target
+    name: Wifi Slave Ziel
+    icon: mdi:signal-variant
+    device_class: ""
+    entity_category: config
+    web_server_sorting_weight: 192
+    restore_mode: ALWAYS_OFF
+    optimistic: true
+    on_turn_on:
+    - lambda: |-
+        command("WIS", id(wifi_slave_target).state);
+    on_turn_off:
+    - lambda: |-
+        command("WIS", id(wifi_slave_target).state);
