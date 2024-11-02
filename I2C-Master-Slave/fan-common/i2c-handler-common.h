@@ -92,23 +92,6 @@ int calc_checksum(std::string check)
     uint8_t data[ANSWERSIZE];
     std::copy(check.begin(), check.end(), std::begin(data));
     int chk_sum = esphome::crc8(data, check.length());
-    /*
-    // old version fletcher checksum
-    const char *arr = check.c_str();
-    // const char arr[] = "Test";
-    int chk_sum;
-    uint8_t sum1 = 0;
-    uint8_t sum2 = 0;
-    int i = 0;
-    while (((uint8_t)arr[i]) != 0)
-    {
-        sum1 = sum1 + (uint8_t)arr[i];
-        sum2 = sum2 + sum1;
-        i++;
-    }
-    chk_sum = (sum2 << 8) | sum1;
-    // ESP_LOGD(TAG, "Function ChecksumFletcher16: %i", chk_sum);
-    */
     return chk_sum;
 }
 
