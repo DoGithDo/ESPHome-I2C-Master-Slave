@@ -33,7 +33,6 @@ packages:
 logger:
   level: ${log_level}
 
-# Triggers button "Visit" for the device on dashboard. Future: use password
 web_server:
   include_internal: ${show_internal}
   log: ${show_log}
