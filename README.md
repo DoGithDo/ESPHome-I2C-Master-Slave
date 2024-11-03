@@ -1,8 +1,43 @@
 # ESPHome-I2C-Master-Slave for Heat recovery ventilation
-# Overview
-This project describes the smartification of a heat recovery ventilation system. ESPHome and I2C are used between master and slave. The focus of the description is mainly on the I2C challenge and the experiences gained. In the end, the project was not put live in this form; instead, an RS485 is used.
+# Overview <!-- omit from toc -->
+This project describes the smartification of a heat recovery ventilation system. ESPHome and I2C are used between master and slave. The focus of the description is mainly on the I2C challenge and the experiences gained. In the end, the project was not put live in this form. I2C was not working on a 10 m connection; instead, an RS485 is used.
 
-# Hardware: Heat recovery ventilation (HRV)
+# Table of contents <!-- omit from toc -->
+- [Heat recovery ventilation (HRV)](#heat-recovery-ventilation-hrv)
+  - [Existing Setup](#existing-setup)
+  - [New Setup](#new-setup)
+    - [Concept](#concept)
+    - [Master](#master)
+    - [Slave](#slave)
+    - [Mirroring](#mirroring)
+    - [Self healing](#self-healing)
+    - [Functions in Home Assistant](#functions-in-home-assistant)
+- [Software](#software)
+  - [Concept](#concept-1)
+  - [Messages](#messages)
+    - [Structure](#structure)
+    - [Sending](#sending)
+  - [Master](#master-1)
+    - [Request Data](#request-data)
+    - [Analyse Queue](#analyse-queue)
+  - [Slave](#slave-1)
+  - [Update of ESPHome entities using C++](#update-of-esphome-entities-using-c)
+  - [I2C](#i2c)
+    - [Master to Slave](#master-to-slave)
+      - [Initialization](#initialization)
+      - [Sending Data](#sending-data)
+      - [Requesting Data](#requesting-data)
+    - [Slave to Master](#slave-to-master)
+      - [Initialization](#initialization-1)
+      - [Receive Event](#receive-event)
+      - [Request Event](#request-event)
+  - [Issues on I2C and solutions](#issues-on-i2c-and-solutions)
+- [The big but: it's not working](#the-big-but-its-not-working)
+- [Experiences](#experiences)
+  - [Positive](#positive)
+  - [How to improve](#how-to-improve)
+
+# Heat recovery ventilation (HRV)
 ## Existing Setup
 There is a ventilation system with a heat exchanger for the flat in my basement. The ventilation is controlled via a rotary switch in the flat. The ventilation system decides whether the flap of the heat exchanger is open or closed based on the measured temperature of the fresh air.
 The ventilation system consists of the following components:
@@ -82,16 +117,16 @@ Examples of a message:
 `FHS:false#38$0*`
 
 Explanation:
-| Element | Description |
-| --------------- | -------------
-| `TUB` | Commands (type of message). These are defined as `enum` in i2c-handler-common.h |
-| `:` | Delimiter between command and payload.|
-| `22.6875` | Payload.  The payload is the e. g. the state of a sensor. In this case the temperature. |
-| `#` | Delimiter between payload and checksum. |
-| `137` | Checksum |
-| `$` | Delimiter between cheksum and number of elements waiting in the queue. In case of master also end tag. |
-| `3` | Slave only: number of elements in the queue waiting to be delivered to the master |
-| `*` | Slave only: end tag |
+| Element   | Description                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| `TUB`     | Commands (type of message). These are defined as `enum` in i2c-handler-common.h                        |
+| `:`       | Delimiter between command and payload.                                                                 |
+| `22.6875` | Payload.  The payload is the e. g. the state of a sensor. In this case the temperature.                |
+| `#`       | Delimiter between payload and checksum.                                                                |
+| `137`     | Checksum                                                                                               |
+| `$`       | Delimiter between cheksum and number of elements waiting in the queue. In case of master also end tag. |
+| `3`       | Slave only: number of elements in the queue waiting to be delivered to the master                      |
+| `*`       | Slave only: end tag                                                                                    |
 
 ### Sending
 Master and Slave send messages.
@@ -146,11 +181,11 @@ The data received from the slave is not analysed immediately, but written to an 
 ## Update of ESPHome entities using C++
 The ESPHome entities are directly updated using C++.
 
-| Example | Description |
-| --------------- | -------------
-|`id(temp_fresh_before_mirror).publish_state(std::stof(response_value))`|Updating a mirrored sensor on master. Converting string to float before publishing|
-|`id(fan_fresh_mirror).make_call().set_speed(stoi(response_value)).perform()`|Updating the speed of a fan. Converting string to integer before updating|
-|`id(flap_heat_exchanger).turn_off()`|Turning off a switch|
+| Example                                                                      | Description                                                                        |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `id(temp_fresh_before_mirror).publish_state(std::stof(response_value))`      | Updating a mirrored sensor on master. Converting string to float before publishing |
+| `id(fan_fresh_mirror).make_call().set_speed(stoi(response_value)).perform()` | Updating the speed of a fan. Converting string to integer before updating          |
+| `id(flap_heat_exchanger).turn_off()`                                         | Turning off a switch                                                               |
 
 During programming, these direct calls were very unpleasant. The development environment used (VSCode) did not recognise the ESPHome entities in C++.
 I have spent some time reading up on Intellisense but have not found a solution to this (cosmetic) problem.
@@ -237,12 +272,13 @@ Calculating a checksum would not be necessary. Either the message was completely
 
 I ran this code for several days using a 10 cm cable. And with thousands of messages, it has a success rate of 100%.
 
-# The big but
+# The big but: it's not working
 With the short cable everything worked perfectly. With a long cable of 10 m reliable communication was no longer possible.
 My friend - who built the hardware components of this project - tried various things. I don't understand all the electronic tricks, but he tried the following, for example:
 - Using a P82B715 bus extender
 - Changing the quality of the cable
 - Using resistors and capacitors to make the signal "clearer"
+- We did measure the data bits using an oscilloscope. There was a too early drop in the signal on the falling edge.
 
 **Solution:** We are switching to a serial interface (RS485). The first prototype makes us confident.
 
