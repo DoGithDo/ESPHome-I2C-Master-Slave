@@ -1,6 +1,6 @@
 # ESPHome-I2C-Master-Slave for Heat recovery ventilation
 # Overview <!-- omit from toc -->
-This project describes the smartification of a heat recovery ventilation system. ESPHome and I2C are used between master and slave. The focus of the description is mainly on the I2C challenge and the experiences gained. In the end, the project was not put live in this form. I2C was not working on a 10 m connection; instead, an RS485 is used.
+This project describes the smartification of a heat recovery ventilation system. ESPHome and I2C are used between master and slave. The focus of the description is mainly on the I2C challenge and the experiences gained. In the end, the project was not put live in this form. I2C was not working on a 10 m connection; instead, an RS485 is used (see https://github.com/DoGithDo/ESPHome-RS485-Heat-recovery-ventilation).
 
 # Table of contents <!-- omit from toc -->
 - [Heat recovery ventilation (HRV)](#heat-recovery-ventilation-hrv)
